@@ -22,7 +22,6 @@ dependencies = [
     "httpcore==1.0.9",
     "httpx==0.28.1",
     "idna==3.18",
-    "ipykernel==7.3.0",
     "ipython==9.16.1",
     "ipython-pygments-lexers==1.1.1",
     "jedi==0.20.0",
@@ -31,6 +30,7 @@ dependencies = [
     "jupyter-core==5.9.1",
     "matplotlib-inline==0.2.2",
     "nest-asyncio2==1.7.2",
+    "nltk>=3.10.2",
     "openai==2.53.0",
     "packaging==26.3",
     "parso==0.8.7",
@@ -63,3 +63,8 @@ ai-specialization = "ai_specialization:main"
 [build-system]
 requires = ["uv_build>=0.12.2,<0.13.0"]
 build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.3.0",
+]
