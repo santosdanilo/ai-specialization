@@ -1,6 +1,19 @@
+import os
 import nltk
+from whoosh.index import create_in
+from whoosh.fields import *
+from whoosh.qparser import QueryParser
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+import shutil
+
+
+import warnings
+
+warnings.filterwarnings("ignore", category=SyntaxWarning)
+
+nltk.download("stopwords")
+
 
 documents = [
     "Machine learning é um campo da inteligência artificial que permite que computadores aprendam padrões a partir de dados.",
@@ -22,32 +35,44 @@ def preprocess(text):
 
     tokens = nltk.word_tokenize(text_lower)
 
-    return [word for word in tokens if word.isalnum()]
+    tokens = [word for word in tokens if word.isalnum()]
+
+    stopwords = set(nltk.corpus.stopwords.words("portuguese")) - {"e", "ou", "não"}
+
+    return [word for word in tokens if word not in stopwords]
 
 
-preprocessed_docs = [" ".join(preprocess(doc)) for doc in documents]
+text = "Machine learning é um campo da inteligência artificial que permite que computadores aprendam padrões a partir de dados."
 
-vectorizer = TfidfVectorizer()
+preprocess(text)
 
-tfidf_matrix = vectorizer.fit_transform(preprocessed_docs)
+if os.path.exists("index_dir"):
+    shutil.rmtree("index_dir")
 
-query = "machine learning"
+os.mkdir("index_dir")
+
+schema = Schema(title=ID(stored=True, unique=True), content=TEXT(stored=True))
+
+index = create_in("index_dir", schema)
+
+writer = index.writer()
+
+for i, doc in enumerate(documents):
+    writer.add_document(title=str(i), content=doc)
+
+writer.commit()
+
+query = "machine e learning"
 
 
-def search_tfidf(query, vectorizer, tfidf_matrix):
-    query_vector = vectorizer.transform([query])
+def boolean_search(query, index):
+    parser = QueryParser("content", schema=index.schema)
 
-    similarities = cosine_similarity(tfidf_matrix, query_vector).flatten()
+    parsed_query = parser.parse(query)
 
-    sorted_similarities = list(enumerate(similarities))
-    results = sorted(sorted_similarities, key=lambda x: x[1], reverse=True)
-    return results
+    with index.searcher() as seacher:
+        results = seacher.search(parsed_query)
+        return [(hit["title"], hit["content"]) for hit in results]
 
 
-search_similarities = search_tfidf(query, vectorizer, tfidf_matrix)
-search_similarities
-
-print(f"top 10 documentos por score de similaridade {query}:")
-
-for doc_index, score in search_similarities[:10]:
-    print(f"documento {doc_index}: {documents[doc_index]}")
+boolean_search(query, index)
