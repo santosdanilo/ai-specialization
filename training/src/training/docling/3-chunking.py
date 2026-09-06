@@ -1,5 +1,5 @@
-from docling.document_converter import DocumentConverter
 from docling.chunking import HybridChunker
+from docling.document_converter import DocumentConverter
 from docling_core.transforms.chunker.tokenizer.huggingface import HuggingFaceTokenizer
 from transformers import AutoTokenizer
 
@@ -25,3 +25,5 @@ for i, chunk in enumerate(chunks):
     print(f"==={i}===\n")
     txt_tokens = tokenizer.count_tokens(chunk.text)
     print(f"chunk.text ({txt_tokens} tokenss)")
+
+print(chunks[4].meta)

@@ -2,11 +2,11 @@
 
 Este documento compara os arquivos:
 
-- `src/fundamentals/tokenization-01.py`
-- `src/fundamentals/tokenization-02.py`
-- `src/fundamentals/tokenization-03.py`
-- `src/fundamentals/tokenization-04.py`
-- `rag.py`
+- `../src/training/fundamentals/tokenization-01.py`
+- `../src/training/fundamentals/tokenization-02.py`
+- `../src/training/fundamentals/tokenization-03.py`
+- `../src/training/fundamentals/tokenization-04.py`
+- `../src/training/rag.py`
 
 ## Visão geral
 
