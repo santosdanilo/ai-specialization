@@ -40,7 +40,7 @@ def main() -> None:
 
     points = []
     for chunk in chunks:
-        embedding = list(model.passage_embed([chunk]))[0].tolist()
+        embedding = next(iter(model.passage_embed([chunk]))).tolist()
         point = models.PointStruct(
             id=str(uuid.uuid4()),
             vector=embedding,
@@ -51,7 +51,7 @@ def main() -> None:
         qdrant.upload_points(collection_name=COLLECTION_NAME, points=points)
 
     query_text = "what are the main financial risks?"
-    query_embedding = list(model.query_embed([query_text]))[0].tolist()
+    query_embedding = next(iter(model.query_embed([query_text]))).tolist()
 
     results = qdrant.query_points(
         collection_name=COLLECTION_NAME, query=query_embedding, limit=3
