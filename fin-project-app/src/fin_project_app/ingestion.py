@@ -32,7 +32,9 @@ def main() -> None:
 
     content = FILE_PATH.read_text(encoding="utf-8")
     paragraphs = content.split("\n\n")
-    chunks = [paragraph.strip() for paragraph in paragraphs if len(paragraph.strip()) > 50]
+    chunks = [
+        paragraph.strip() for paragraph in paragraphs if len(paragraph.strip()) > 50
+    ]
 
     model = TextEmbedding(MODEL_NAME)
 
@@ -47,6 +49,18 @@ def main() -> None:
         points.append(point)
 
         qdrant.upload_points(collection_name=COLLECTION_NAME, points=points)
+
+    query_text = "what are the main financial risks?"
+    query_embedding = list(model.query_embed([query_text]))[0].tolist()
+
+    results = qdrant.query_points(
+        collection_name=COLLECTION_NAME, query=query_embedding, limit=3
+    )
+
+    for r in results.points:
+        print(f"Score: {r.score}")
+        print(f"Texto: {r.payload['text'][:100]}...")
+        print("-" * 80)
 
 
 if __name__ == "__main__":
