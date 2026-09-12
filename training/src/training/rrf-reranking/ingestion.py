@@ -6,9 +6,9 @@ from dotenv import load_dotenv
 from fastembed import TextEmbedding, SparseTextEmbedding, LateInteractionTextEmbedding
 from qdrant_client import QdrantClient, models
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-WORKSPACE_ROOT = PROJECT_ROOT.parent
-FILE_PATH = PROJECT_ROOT / "AAPL_10-K_1A_temp.md"
+APP_ROOT = Path(__file__).resolve().parent
+WORKSPACE_ROOT = APP_ROOT.parents[3]
+FILE_PATH = APP_ROOT / "AAPL_10-K_1A_temp.md"
 DENSE_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 COLLECTION_NAME = "financial"
 SPARSE_MODEL_NAME = "Qdrant/bm25"

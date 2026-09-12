@@ -1,2 +1,2 @@
 [tool.uv.workspace]
-members = ["training", "legal-project-app", "fin-project-app"]
+members = ["training", "legal-project-app"]
