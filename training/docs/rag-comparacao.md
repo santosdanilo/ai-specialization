@@ -2,10 +2,10 @@
 
 Este documento compara os arquivos:
 
-- `../src/training/fundamentals/tokenization-01.py`
-- `../src/training/fundamentals/tokenization-02.py`
-- `../src/training/fundamentals/tokenization-03.py`
-- `../src/training/fundamentals/tokenization-04.py`
+- `../src/training/fundamentals/tokenization_01.py`
+- `../src/training/fundamentals/tokenization_02.py`
+- `../src/training/fundamentals/tokenization_03.py`
+- `../src/training/fundamentals/tokenization_04.py`
 - `../src/training/rag.py`
 
 ## Visão geral
@@ -14,10 +14,10 @@ Os arquivos de `fundamentals` apresentam técnicas de pré-processamento e recup
 
 | Arquivo | Técnica | Representação | Ranking | Geração de resposta |
 |---|---|---|---|---|
-| `tokenization-01.py` | Tokenização e normalização | Tokens de palavras e frases | Não se aplica | Não |
-| `tokenization-02.py` | TF-IDF | Vetores esparsos de termos | Similaridade do cosseno | Não |
-| `tokenization-03.py` | Busca com Whoosh | Índice invertido em disco | Pontuação do Whoosh | Não |
-| `tokenization-04.py` | BM25 | Corpus lexical tokenizado | Score BM25 | Não |
+| `tokenization_01.py` | Tokenização e normalização | Tokens de palavras e frases | Não se aplica | Não |
+| `tokenization_02.py` | TF-IDF | Vetores esparsos de termos | Similaridade do cosseno | Não |
+| `tokenization_03.py` | Busca com Whoosh | Índice invertido em disco | Pontuação do Whoosh | Não |
+| `tokenization_04.py` | BM25 | Corpus lexical tokenizado | Score BM25 | Não |
 | `rag.py` | Recuperação densa + RAG | Embeddings de frases | Similaridade do cosseno | Sim, via Groq |
 
 ## Diagramas dos pipelines
@@ -96,7 +96,7 @@ flowchart LR
     L --> R[Resposta gerada]
 ```
 
-## 1. Tokenização: `tokenization-01.py`
+## 1. Tokenização: `tokenization_01.py`
 
 Este arquivo apresenta a base de pré-processamento usada pelos outros exemplos. Ele não implementa uma técnica de recuperação.
 
@@ -121,7 +121,7 @@ Sem os parênteses, o código verifica o método em vez de executar a verificaç
 
 A tokenização de frases também poderia ser usada como uma estratégia simples de divisão em chunks, mas isso não acontece neste arquivo.
 
-## 2. TF-IDF: `tokenization-02.py`
+## 2. TF-IDF: `tokenization_02.py`
 
 O arquivo implementa recuperação lexical usando **TF-IDF** e similaridade do cosseno.
 
@@ -146,7 +146,7 @@ A consulta não passa explicitamente pela mesma função `preprocess()` usada no
 
 TF-IDF poderia ser usado como o recuperador de um sistema RAG, mas neste arquivo não existe geração por LLM.
 
-## 3. Whoosh: `tokenization-03.py`
+## 3. Whoosh: `tokenization_03.py`
 
 Este arquivo implementa busca lexical com um **índice invertido** criado pelo Whoosh.
 
@@ -181,7 +181,7 @@ Além disso, `TfidfVectorizer` e `cosine_similarity` são importados, mas não s
 
 Apesar do nome `boolean_search`, este exemplo é melhor descrito como busca lexical indexada com suporte a consultas Booleanas.
 
-## 4. BM25: `tokenization-04.py`
+## 4. BM25: `tokenization_04.py`
 
 O arquivo implementa recuperação lexical usando **BM25**, um método probabilístico muito usado em mecanismos de busca.
 

@@ -3,8 +3,10 @@ import uuid
 from pathlib import Path
 
 from dotenv import load_dotenv
-from fastembed import TextEmbedding, SparseTextEmbedding, LateInteractionTextEmbedding
+from fastembed import LateInteractionTextEmbedding, SparseTextEmbedding, TextEmbedding
 from qdrant_client import QdrantClient, models
+
+from training.rrf_reranking.utils.semantic_chunker import SemanticChunker
 
 APP_ROOT = Path(__file__).resolve().parent
 WORKSPACE_ROOT = APP_ROOT.parents[3]
@@ -13,6 +15,7 @@ DENSE_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 COLLECTION_NAME = "financial"
 SPARSE_MODEL_NAME = "Qdrant/bm25"
 COLBERT_MODEL_NAME = "colbert-ir/colbertv2.0"
+MAX_TOKENS = 300
 
 
 def main() -> None:
@@ -42,11 +45,12 @@ def main() -> None:
         sparse_vectors_config={"sparse": models.SparseVectorParams()},
     )
 
-    content = FILE_PATH.read_text(encoding="utf-8")
-    paragraphs = content.split("\n\n")
-    chunks = [
-        paragraph.strip() for paragraph in paragraphs if len(paragraph.strip()) > 50
-    ]
+    with open(FILE_PATH, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    chunker = SemanticChunker(max_tokens=MAX_TOKENS)
+
+    chunks = chunker.create_chunks(content)
 
     dense_model = TextEmbedding(DENSE_MODEL_NAME)
     sparse_model = SparseTextEmbedding(SPARSE_MODEL_NAME)
