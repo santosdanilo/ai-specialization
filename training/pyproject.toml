@@ -65,6 +65,7 @@ dependencies = [
     "typing-inspection==0.4.2",
     "wcwidth==0.8.2",
     "whoosh>=2.7.4",
+    "hdbscan>=0.8.44",
 ]
 
 [project.scripts]
