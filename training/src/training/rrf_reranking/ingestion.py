@@ -6,11 +6,11 @@ from dotenv import load_dotenv
 from fastembed import LateInteractionTextEmbedding, SparseTextEmbedding, TextEmbedding
 from qdrant_client import QdrantClient, models
 
+from training.rrf_reranking.utils.edgar_client import EdgarClient
 from training.rrf_reranking.utils.semantic_chunker import SemanticChunker
 
 APP_ROOT = Path(__file__).resolve().parent
 WORKSPACE_ROOT = APP_ROOT.parents[3]
-FILE_PATH = APP_ROOT / "AAPL_10-K_1A_temp.md"
 DENSE_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 COLLECTION_NAME = "financial"
 SPARSE_MODEL_NAME = "Qdrant/bm25"
@@ -45,19 +45,32 @@ def main() -> None:
         sparse_vectors_config={"sparse": models.SparseVectorParams()},
     )
 
-    with open(FILE_PATH, "r", encoding="utf-8") as f:
-        content = f.read()
+    edgar = EdgarClient(os.getenv("EDGAR_CLIENT_EMAIL"))
+
+    data_10k = edgar.fetch_filing_data("AAPL", "10-K")
+    text_10k = edgar.get_combined_text(data_10k)
+
+    data_10q = edgar.fetch_filing_data("AAPL", "10-Q")
+    text_10q = edgar.get_combined_text(data_10q)
 
     chunker = SemanticChunker(max_tokens=MAX_TOKENS)
 
-    chunks = chunker.create_chunks(content)
+    all_chunks = []
+
+    for data, text in [(data_10k, text_10k), (data_10q, text_10q)]:
+        chunks = chunker.create_chunks(text)
+        for chunk in chunks:
+            all_chunks.append({"text": chunk, "metadata": data["metadata"]})
 
     dense_model = TextEmbedding(DENSE_MODEL_NAME)
     sparse_model = SparseTextEmbedding(SPARSE_MODEL_NAME)
     colbert_model = LateInteractionTextEmbedding(COLBERT_MODEL_NAME)
 
     points = []
-    for chunk in chunks:
+    for chunk_data in all_chunks:
+        chunk = chunk_data["text"]
+        metadata = chunk_data["metadata"]
+
         dense_embedding = next(iter(dense_model.passage_embed([chunk]))).tolist()
         sparse_embedding = next(iter(sparse_model.passage_embed([chunk]))).as_object()
         colbert_embedding = next(iter(colbert_model.passage_embed([chunk]))).tolist()
@@ -69,11 +82,13 @@ def main() -> None:
                 "sparse": sparse_embedding,
                 "colbert": colbert_embedding,
             },
-            payload={"text": chunk, "source": str(FILE_PATH)},
+            payload={"text": chunk, "metadata": metadata},
         )
         points.append(point)
 
-        qdrant.upload_points(collection_name=COLLECTION_NAME, points=points)
+        qdrant.upload_points(
+            collection_name=COLLECTION_NAME, points=points, batch_size=5
+        )
 
     query_text = "what are the main financial risks?"
     query_dense_embedding = next(iter(dense_model.query_embed([query_text]))).tolist()
