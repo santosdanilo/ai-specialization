@@ -14,6 +14,8 @@ class Settings(BaseSettings):
     dense_model_name: str = "sentence-transformers/all-MiniLM-L6-v2"
     sparse_model_name: str = "Qdrant/bm25"
     colbert_model_name: str = "colbert-ir/colbertv2.0"
+    groq_api_key: str
+    groq_model: str = "openai/gpt-oss-120b"
 
 
 settings = Settings()

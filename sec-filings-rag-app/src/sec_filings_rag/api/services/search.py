@@ -11,13 +11,18 @@ class SearchService:
         qdrant_api_key: str,
         collection_name: str,
     ):
-        self.qdrant = QdrantClient(url=qdrant_api_url, api_key=qdrant_api_key)
+        self.qdrant = QdrantClient(
+            url=qdrant_api_url,
+            api_key=qdrant_api_key,
+        )
         self.collection_name = collection_name
         self.embedding_service = EmbeddingService()
 
     def query(self, query: str, limit: int = 3):
         query_dense_embedding, query_sparse_embedding, query_colbert_embedding = (
-            self.embedding_service.embedded_query(query=query)
+            self.embedding_service.embedded_query(
+                query=query,
+            )
         )
 
         results = self.qdrant.query_points(
@@ -36,7 +41,9 @@ class SearchService:
                             "limit": 10,
                         },
                     ],
-                    "query": models.FusionQuery(fusion=models.Fusion.RRF),
+                    "query": models.FusionQuery(
+                        fusion=models.Fusion.RRF,
+                    ),
                     "limit": 15,
                 },
                 {},
@@ -56,4 +63,6 @@ class SearchService:
             )
             for result in results.points
         ]
-        return SearchResponse(results=search_results)
+        return SearchResponse(
+            results=search_results,
+        )
