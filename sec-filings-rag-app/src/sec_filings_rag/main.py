@@ -1,10 +1,15 @@
 from fastapi import FastAPI
 
 from sec_filings_rag.api.routers import rag, search
-from sec_filings_rag.api.routes import router
 
 app = FastAPI(title="SEC Filings RAG")
-app.include_router(router)
+
+
+@app.get("/")
+def read_root():
+    return {"status": "ok"}
+
+
 app.include_router(search.router)
 app.include_router(rag.router)
 
