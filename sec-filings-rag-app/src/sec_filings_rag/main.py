@@ -1,42 +1,12 @@
-from functools import lru_cache
-
 from fastapi import FastAPI
 
-from sec_filings_rag.api.config.settings import settings
-from sec_filings_rag.api.models.rag import RAGRequest, RAGResponse
-from sec_filings_rag.api.models.search import SearchRequest, SearchResponse
+from sec_filings_rag.api.routers import rag, search
 from sec_filings_rag.api.routes import router
-from sec_filings_rag.api.services.rag import RAGService
-from sec_filings_rag.api.services.search import SearchService
 
 app = FastAPI(title="SEC Filings RAG")
 app.include_router(router)
-
-
-@lru_cache
-def get_search_service() -> SearchService:
-    return SearchService(
-        qdrant_api_url=settings.qdrant_api_url,
-        qdrant_api_key=settings.qdrant_api_key,
-        collection_name=settings.collection_name,
-    )
-
-
-@lru_cache
-def get_rag_service() -> RAGService:
-    return RAGService(
-        search_service=get_search_service(),
-    )
-
-
-@app.post("/search", response_model=SearchResponse)
-def search(request: SearchRequest):
-    return get_search_service().query(request.query, request.limit)
-
-
-@app.post("/rag", response_model=RAGResponse)
-def rag(request: RAGRequest):
-    return get_rag_service().generate_answer(request.query, request.limit)
+app.include_router(search.router)
+app.include_router(rag.router)
 
 
 if __name__ == "__main__":
