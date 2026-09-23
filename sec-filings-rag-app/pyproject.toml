@@ -1,0 +1,21 @@
+[project]
+name = "sec-filings-rag-app"
+version = "0.1.0"
+description = "SEC filings RAG application with hybrid retrieval and reranking"
+requires-python = ">=3.12"
+dependencies = [
+    "edgartools>=5.58.0",
+    "fastembed>=0.7.3",
+    "hdbscan>=0.8.44",
+    "python-dotenv>=1.1.0",
+    "qdrant-client>=1.19.0",
+    "sentence-transformers>=6.0.1",
+    "transformers>=5.0.0",
+]
+
+[project.scripts]
+sec-filings-rag = "sec_filings_rag.ingestion:main"
+
+[build-system]
+requires = ["uv_build>=0.12.2,<0.13.0"]
+build-backend = "uv_build"
