@@ -5,6 +5,7 @@ description = "SEC filings RAG application with hybrid retrieval and reranking"
 requires-python = ">=3.12"
 dependencies = [
     "edgartools>=5.58.0",
+    "fastapi>=0.141.1",
     "fastembed>=0.7.3",
     "hdbscan>=0.8.44",
     "python-dotenv>=1.1.0",
@@ -15,6 +16,9 @@ dependencies = [
 
 [project.scripts]
 sec-filings-rag = "sec_filings_rag.ingestion:main"
+
+[tool.uv.build-backend]
+module-name = "sec_filings_rag"
 
 [build-system]
 requires = ["uv_build>=0.12.2,<0.13.0"]
