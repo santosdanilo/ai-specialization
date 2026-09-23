@@ -11,9 +11,9 @@ class Settings(BaseSettings):
     qdrant_api_url: str
     qdrant_api_key: str
     collection_name: str = "financial"
-    dense_model_name = "sentence-transformers/all-MiniLM-L6-v2"
-    sparse_model_name = "Qdrant/bm25"
-    colbert_model_name = "colbert-ir/colbertv2.0"
+    dense_model_name: str = "sentence-transformers/all-MiniLM-L6-v2"
+    sparse_model_name: str = "Qdrant/bm25"
+    colbert_model_name: str = "colbert-ir/colbertv2.0"
 
 
 settings = Settings()

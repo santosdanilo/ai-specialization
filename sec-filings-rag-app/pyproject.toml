@@ -9,14 +9,12 @@ dependencies = [
     "fastembed>=0.7.3",
     "hdbscan>=0.8.44",
     "python-dotenv>=1.1.0",
+    "pydantic-settings>=2.0.0",
     "qdrant-client>=1.19.0",
     "sentence-transformers>=6.0.1",
     "transformers>=5.0.0",
     "uvicorn>=0.30.0",
 ]
-
-[project.scripts]
-sec-filings-rag = "sec_filings_rag.ingestion:main"
 
 [tool.uv.build-backend]
 module-name = "sec_filings_rag"

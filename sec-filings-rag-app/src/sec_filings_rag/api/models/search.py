@@ -13,4 +13,4 @@ class SearchResult(BaseModel):
 
 
 class SearchResponse(BaseModel):
-    result: list[SearchResult]
+    results: list[SearchResult]
