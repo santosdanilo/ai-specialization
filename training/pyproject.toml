@@ -68,6 +68,7 @@ dependencies = [
     "hdbscan>=0.8.44",
     "edgartools>=5.58.0",
     "yfinance>=1.7.0",
+    "mem0ai",
 ]
 
 [project.scripts]
@@ -81,3 +82,6 @@ build-backend = "uv_build"
 dev = [
     "ipykernel>=7.3.0",
 ]
+
+[tool.uv.sources]
+mem0ai = { git = "https://github.com/mem0ai/mem0" }
