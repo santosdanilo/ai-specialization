@@ -9,7 +9,6 @@ from openai import OpenAI
 
 APP_ROOT = Path(__file__).resolve().parent
 WORKSPACE_ROOT = APP_ROOT.parents[3]
-MODEL_NAME = "openai/gpt-oss-120b"
 
 load_dotenv(WORKSPACE_ROOT / ".env")
 client = MemoryClient()
