@@ -50,18 +50,21 @@ memory = Memory.from_config(config)
 
 
 def chat_with_memories(message: str, user_id: str = "danilo") -> str:
-    relevant_memories = memory.search(
-        query=message,
-        filters={"user_id": user_id},
-        top_k=3,
-    )
+    try:
+        relevant_memories = memory.search(
+            query=message,
+            filters={"user_id": user_id},
+            top_k=3,
+        )
+    except Exception as e:
+        print(f"Aviso: falha ao buscar memórias ({e}); seguindo sem memórias.")
+        relevant_memories = {"results": []}
     results = relevant_memories.get("results", [])
     memories_str = "\n".join(f"- {entry.get('memory', '')}" for entry in results)
 
     input_prompt = f"""Você é um assistente pessoal.
-    Responda a pergunta consideerando as memórias do usuário.
-    Memórias do usuário {memories_str}.
-    Pergunta {message}
+    Responda a pergunta usando as memórias do usuário.
+    Memórias do usuário {memories_str}. Pergunta {message}
     """
 
     response = client.responses.create(
@@ -82,7 +85,10 @@ def chat_with_memories(message: str, user_id: str = "danilo") -> str:
         },
     ]
 
-    memory.add(messages, user_id=user_id)
+    try:
+        memory.add(messages, user_id=user_id, infer=False)
+    except Exception as e:
+        print(f"Aviso: falha ao salvar memória ({e}).")
 
     return assistent_response
 
