@@ -6,8 +6,8 @@ from dotenv import load_dotenv
 from fastembed import LateInteractionTextEmbedding, SparseTextEmbedding, TextEmbedding
 from qdrant_client import QdrantClient, models
 
-from training.rrf_reranking.utils.edgar_client import EdgarClient
-from training.rrf_reranking.utils.semantic_chunker import SemanticChunker
+from sec_filings_rag.ingestion.utils.edgar_client import EdgarClient
+from sec_filings_rag.ingestion.utils.semantic_chunker import SemanticChunker
 
 APP_ROOT = Path(__file__).resolve().parent
 WORKSPACE_ROOT = APP_ROOT.parents[3]
