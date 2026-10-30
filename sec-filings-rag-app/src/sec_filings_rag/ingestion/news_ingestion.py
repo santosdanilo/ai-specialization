@@ -26,7 +26,8 @@ qdrant = QdrantClient(
 
 news_client = NewsClient()
 
-news_data = news_client.fetch_news("AAPL", max_stories=10)
+news_data = news_client.fetch_news("GOOG", max_stories=10)
+news_data
 
 chunker = SimpleChunker(max_tokens=MAX_TOKENS)
 

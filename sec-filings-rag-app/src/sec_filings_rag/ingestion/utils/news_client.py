@@ -1,6 +1,8 @@
 import trafilatura
 import yfinance as yf
 
+yf.config.debug.logging = True
+
 
 class NewsClient:
     def fetch_news(self, ticker: str, max_stories: int = 10) -> list[dict[str, any]]:
