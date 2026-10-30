@@ -4,8 +4,6 @@ from types import SimpleNamespace
 import trafilatura
 import yfinance as yf
 
-yf.config.debug.logging = True
-
 
 def Ticker(ticker: str, count: int = 10) -> SimpleNamespace:
     """Return ticker news in yfinance's former ``Ticker.news`` format.
