@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from sec_filings_rag.api.routers import rag, search
+from sec_filings_rag.api.routers import agent, rag, search
 
 app = FastAPI(title="SEC Filings RAG")
 
@@ -12,6 +12,7 @@ def read_root():
 
 app.include_router(search.router)
 app.include_router(rag.router)
+app.include_router(agent.router)
 
 
 if __name__ == "__main__":
