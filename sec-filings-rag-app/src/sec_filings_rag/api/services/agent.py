@@ -62,11 +62,11 @@ class AgentService:
             SENTIMENT_QUERY_TEMPLATE.format(ticker=ticker),
             limit,
         )
-        results = self.search_service.query(
+        search_results = self.search_service.query(
             query,
             limit,
         )
-        context = "\n\n".join([result.text for result in results])
+        context = "\n\n".join([result.text for result in search_results.results])
         prompt = SENTIMENT_PROMPT.format(context=context)
         return await self._generate_completion(prompt=prompt)
 
@@ -87,12 +87,12 @@ class AgentService:
             sentiment=sentiment_analysis,
         )
 
-        final_recomendation = await self._generate_completion(aggregation_prompt)
+        final_recommendation = await self._generate_completion(aggregation_prompt)
 
         return AgentResponse(
             ticker=ticker,
             fundamental_analysis=fundamental_analysis,
             momentum_analysis=momentum_analysis,
             sentiment_analysis=sentiment_analysis,
-            final_recomendation=final_recomendation,
+            final_recommendation=final_recommendation,
         )
