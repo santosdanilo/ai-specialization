@@ -1,8 +1,16 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from sec_filings_rag.api.routers import agent, rag, search
 
 app = FastAPI(title="SEC Filings RAG")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/")
