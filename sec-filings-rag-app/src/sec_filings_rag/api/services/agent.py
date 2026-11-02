@@ -71,6 +71,7 @@ class AgentService:
         query = self._run_queries(
             SENTIMENT_QUERY_TEMPLATE.format(ticker=ticker),
             limit,
+            filter,
         )
         search_results = self.search_service.query(query, limit, filter)
         context = "\n\n".join([result.text for result in search_results.results])

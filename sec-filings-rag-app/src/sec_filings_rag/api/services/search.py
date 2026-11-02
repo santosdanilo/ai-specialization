@@ -69,6 +69,9 @@ class SearchService:
             query_filter=query_filter,
             with_payload=True,
         )
+        if not results.points:
+            return SearchResponse(results=[])
+
         max_score = max(result.score for result in results.points)
 
         search_results = [
