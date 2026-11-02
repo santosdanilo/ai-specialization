@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
 from sec_filings_rag.api.deps import get_search_service
 from sec_filings_rag.api.models.agent import AgentRequest, AgentResponse
@@ -11,4 +11,7 @@ agent_service = AgentService(search_service=get_search_service())
 
 @router.post("/agent", response_model=AgentResponse)
 async def agent(request: AgentRequest):
-    return await agent_service.analyze(request.ticker, request.limit)
+    try:
+        return await agent_service.analyze(request.query, request.limit)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))

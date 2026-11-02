@@ -22,6 +22,7 @@ from sec_filings_rag.api.models.agent import (
     SentimentAnalysis,
 )
 from sec_filings_rag.api.services.search import SearchService
+from sec_filings_rag.api.services.ticker_extractor import TickerExtractor
 
 
 class AgentService:
@@ -31,6 +32,7 @@ class AgentService:
             api_key=settings.groq_api_key,
         )
         self.client = instructor.from_groq(client=client, mode=instructor.Mode.JSON)
+        self.ticker_extractor = TickerExtractor()
 
     def _run_queries(
         self, queries: list[str], limit: int, filter: dict[str, Any] | None = None
@@ -95,7 +97,12 @@ class AgentService:
             response_model=SentimentAnalysis,
         )
 
-    async def analyze(self, ticker: str, limit: int = 3):
+    async def analyze(self, query: str, limit: int = 3):
+        ticker = self.ticker_extractor.extract_ticker(query)
+
+        if not ticker:
+            raise ValueError("Could not extract a valid ticker symbol from the query")
+
         fundamental_task = self._analyze_fundamental(ticker, limit)
         momentum_task = self._analyze_momentum(ticker, limit)
         sentiment_task = self._analyze_sentiment(ticker, limit)
@@ -118,6 +125,7 @@ class AgentService:
         )
 
         return AgentResponse(
+            query=query,
             ticker=ticker,
             fundamental_analysis=fundamental_analysis,
             momentum_analysis=momentum_analysis,
