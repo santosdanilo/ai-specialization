@@ -1,2 +1,5 @@
+[tool.uv]
+override-dependencies = ["openai>=2.53.0", "jiter>=0.16.0"]
+
 [tool.uv.workspace]
 members = ["training", "legal-project-app", "sec-filings-rag-app"]
