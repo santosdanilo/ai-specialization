@@ -22,7 +22,7 @@ class SimpleChunker:
 
             if current_tokens + para_tokens > self.max_tokens and current_chunk:
                 chunks.append("\n\n".join(current_chunk))
-                current_chunk = para
+                current_chunk = [para]
                 current_tokens = para_tokens
             else:
                 current_chunk.append(para)
