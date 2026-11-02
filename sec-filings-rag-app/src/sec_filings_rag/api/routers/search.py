@@ -8,4 +8,4 @@ router = APIRouter()
 
 @router.post("/search", response_model=SearchResponse)
 def search(request: SearchRequest):
-    return get_search_service().query(request.query, request.limit)
+    return get_search_service().query(request.query, request.limit, request.filter)

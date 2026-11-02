@@ -1,9 +1,12 @@
+from typing import Any
+
 from pydantic import BaseModel
 
 
 class SearchRequest(BaseModel):
     query: str
     limit: int = 3
+    filter: dict[str, Any] | None = None
 
 
 class SearchResult(BaseModel):
