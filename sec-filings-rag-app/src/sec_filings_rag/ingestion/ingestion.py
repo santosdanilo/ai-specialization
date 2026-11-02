@@ -1,3 +1,4 @@
+import argparse
 import os
 import uuid
 from pathlib import Path
@@ -8,6 +9,7 @@ from qdrant_client import QdrantClient, models
 
 from sec_filings_rag.ingestion.utils.edgar_client import EdgarClient
 from sec_filings_rag.ingestion.utils.semantic_chunker import SemanticChunker
+from sec_filings_rag.ingestion.utils.ticker_validator import parse_ticker
 
 APP_ROOT = Path(__file__).resolve().parent
 WORKSPACE_ROOT = APP_ROOT.parents[3]
@@ -19,6 +21,14 @@ MAX_TOKENS = 300
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description="Ingest SEC filings into Qdrant")
+    parser.add_argument(
+        "ticker",
+        type=parse_ticker,
+        help="Stock ticker, e.g. 'AAPL'",
+    )
+    ticker = parser.parse_args().ticker
+
     load_dotenv(WORKSPACE_ROOT / ".env")
 
     qdrant = QdrantClient(
@@ -47,10 +57,10 @@ def main() -> None:
 
     edgar = EdgarClient(os.getenv("EDGAR_CLIENT_EMAIL"))
 
-    data_10k = edgar.fetch_filing_data("AAPL", "10-K")
+    data_10k = edgar.fetch_filing_data(ticker, "10-K")
     text_10k = edgar.get_combined_text(data_10k)
 
-    data_10q = edgar.fetch_filing_data("AAPL", "10-Q")
+    data_10q = edgar.fetch_filing_data(ticker, "10-Q")
     text_10q = edgar.get_combined_text(data_10q)
 
     chunker = SemanticChunker(max_tokens=MAX_TOKENS)
@@ -86,9 +96,7 @@ def main() -> None:
         )
         points.append(point)
 
-        qdrant.upload_points(
-            collection_name=COLLECTION_NAME, points=points, batch_size=5
-        )
+    qdrant.upload_points(collection_name=COLLECTION_NAME, points=points, batch_size=5)
 
     query_text = "what are the main financial risks?"
     query_dense_embedding = next(iter(dense_model.query_embed([query_text]))).tolist()
