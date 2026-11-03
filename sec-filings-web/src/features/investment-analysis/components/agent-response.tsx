@@ -1,5 +1,5 @@
 import React from 'react';
-import { AgentAnalysis } from '@/types/analysis';
+import { AgentAnalysis } from '../types';
 import { AnalysisCard } from './analysis-card';
 import { RiskOpportunityPanel } from './risk-opportunity-panel';
 import { RecommendationBanner } from './recommendation-banner';

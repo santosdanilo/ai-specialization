@@ -1,7 +1,7 @@
 import React from 'react';
-import { FinalRecommendation } from '@/types/analysis';
-import { RECOMMENDATION_STYLES } from '@/constants/recommendations';
-import { cn } from '@/lib/utils';
+import { FinalRecommendation } from '../types';
+import { RECOMMENDATION_STYLES } from './recommendation-styles';
+import { cn } from '@/shared/lib/utils';
 
 // ===========================================
 // Componente de Banner de Recomendação

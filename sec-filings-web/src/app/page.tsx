@@ -1,5 +1,5 @@
 'use client';
-import { StreamingChat } from "@/components/streaming-chat";
+import { StreamingChat } from "@/features/investment-analysis";
 import { LineChart } from "lucide-react";
 
 export default function Home() {

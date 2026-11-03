@@ -4,10 +4,10 @@ import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Send, TrendingUp } from 'lucide-react';
 
-import { useInvestmentAnalysis } from '@/hooks/useInvestmentAnalysis';
-import { UI_MESSAGES } from '@/constants/recommendations';
-import { LoadingSkeleton, ErrorDisplay } from '@/components/ui';
-import { AgentResponse } from '@/components/analysis';
+import { useInvestmentAnalysis } from '../hooks/use-investment-analysis';
+import { UI_MESSAGES } from '../constants';
+import { AgentResponse } from './agent-response';
+import { LoadingSkeleton, ErrorDisplay } from '@/shared/components/ui';
 
 export function StreamingChat() {
   const [query, setQuery] = useState('');
