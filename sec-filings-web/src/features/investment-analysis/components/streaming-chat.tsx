@@ -28,7 +28,14 @@ export function StreamingChat() {
     analyzeWithRAG,
     analyzeWithAgent,
     retry,
+    resetState,
   } = useInvestmentAnalysis();
+
+  const handleModeChange = (value: boolean) => {
+    setIsAgentMode(value);
+    setQuery('');
+    resetState();
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,7 +62,7 @@ export function StreamingChat() {
           {/* Toggle de Modo */}
           <ModeToggle
             isAgentMode={isAgentMode}
-            onChange={setIsAgentMode}
+            onChange={handleModeChange}
             disabled={isLoading}
           />
 
