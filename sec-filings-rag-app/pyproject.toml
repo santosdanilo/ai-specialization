@@ -19,6 +19,11 @@ dependencies = [
     "instructor>=1.17.0",
 ]
 
+[project.scripts]
+"sec_rag.ingest-filings" = "sec_filings_rag.ingestion.ingestion:main"
+"sec_rag.ingest-news" = "sec_filings_rag.ingestion.news_ingestion:main"
+"sec_rag.create-indexes" = "sec_filings_rag.ingestion.create_indexes:main"
+
 [tool.uv.build-backend]
 module-name = "sec_filings_rag"
 
