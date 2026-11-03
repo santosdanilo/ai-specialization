@@ -25,12 +25,12 @@ export function AgentResponse({ analysis }: AgentResponseProps) {
   return (
     <div className="space-y-6">
       {/* Header com ticker e tempo de execução */}
-      <div className="flex justify-between items-center border-b border-border pb-3">
-        <h3 className="text-xl font-bold text-foreground">
-          {analysis.ticker} - Complete Analysis
+      <div className="flex justify-between items-baseline border-b border-border pb-3">
+        <h3 className="text-lg font-bold tracking-tight text-foreground">
+          <span className="font-mono">{analysis.ticker}</span> — Complete Analysis
         </h3>
-        <span className="text-sm text-muted-foreground">
-          Execution time: {analysis.execution_time.toFixed(2)}s
+        <span className="text-xs text-muted-foreground font-mono tabular-nums">
+          {analysis.execution_time.toFixed(2)}s
         </span>
       </div>
 
@@ -42,8 +42,9 @@ export function AgentResponse({ analysis }: AgentResponseProps) {
         {/* Análise Fundamentalista */}
         <AnalysisCard
           title="Fundamental Analysis"
+          tone="primary"
           items={[
-            { label: 'Grade', value: analysis.fundamental_analysis.investment_grade },
+            { label: 'Grade', value: analysis.fundamental_analysis.investment_grade, mono: true },
             { label: 'Recommendation', value: analysis.fundamental_analysis.recommendation },
           ]}
           description={analysis.fundamental_analysis.overall_investment_thesis}
@@ -52,9 +53,10 @@ export function AgentResponse({ analysis }: AgentResponseProps) {
         {/* Análise de Momentum */}
         <AnalysisCard
           title="Momentum Analysis"
+          tone="warning"
           items={[
             { label: 'Momentum', value: analysis.momentum_analysis.overall_momentum },
-            { label: 'Score', value: `${(analysis.momentum_analysis.momentum_score * 100).toFixed(0)}%` },
+            { label: 'Score', value: `${(analysis.momentum_analysis.momentum_score * 100).toFixed(0)}%`, mono: true },
             { label: 'Outlook', value: analysis.momentum_analysis.short_term_outlook },
           ]}
         />
@@ -62,9 +64,10 @@ export function AgentResponse({ analysis }: AgentResponseProps) {
         {/* Análise de Sentimento */}
         <AnalysisCard
           title="Market Sentiment"
+          tone="success"
           items={[
             { label: 'Sentiment', value: analysis.sentiment_analysis.sentiment_direction },
-            { label: 'Score', value: `${(analysis.sentiment_analysis.sentiment_score * 100).toFixed(0)}%` },
+            { label: 'Score', value: `${(analysis.sentiment_analysis.sentiment_score * 100).toFixed(0)}%`, mono: true },
           ]}
           description={analysis.sentiment_analysis.market_outlook}
         />

@@ -1,13 +1,8 @@
 import type { Metadata } from "next";
-// Corrected imports for Geist and Geist Mono
-import { GeistSans } from "geist/font/sans"; // Import from 'geist/font/sans'
-import { GeistMono } from "geist/font/mono"; // Import from 'geist/font/mono'
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
+import { ThemeProvider } from "@/shared/components/ui/theme-provider";
 import "./globals.css";
-
-// You no longer need to call Geist or Geist_Mono as functions
-// Just assign the imported font objects directly
-const geistSans = GeistSans;
-const geistMono = GeistMono;
 
 export const metadata: Metadata = {
   title: "SEC Filings RAG",
@@ -20,11 +15,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${GeistSans.variable} ${GeistMono.variable} antialiased`}
       >
-        {children}
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );
