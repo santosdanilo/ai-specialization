@@ -18,6 +18,7 @@ dependencies = [
     "trafilatura>=2.3.1",
     "instructor>=1.17.0",
     "groq>=1.7.0",
+    "langfuse>=5.2.0",
 ]
 
 [project.scripts]
