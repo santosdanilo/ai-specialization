@@ -130,3 +130,46 @@ def evaluate_recommendation_quality(trace_data: dict) -> PromptResponseEvaluatio
     )
 
     return response.choices[0].message.parsed
+
+
+def run_llm_as_judge_evaluations():
+    traces = langfuse.api.trace.list(tags=["evaluation", "integration_test"], limit=1)
+
+    for trace in traces.data:
+        trace_data = langfuse.api.trace.get(trace.id)
+
+        if not trace_data.output:
+            continue
+
+        fundamental_eval = evaluate_fundamental_analysis(
+            {"input": trace_data.input, "output": trace_data.output}
+        )
+
+        langfuse.create_score(
+            trace_id=trace.id,
+            name="fundamental_quality",
+            value=fundamental_eval.score,
+            comment=fundamental_eval.reasoning,
+            data_type="NUMERIC",
+        )
+
+        recommendation_eval = evaluate_recommendation_quality(
+            {"output": trace_data.output}
+        )
+
+        langfuse.create_score(
+            trace_id=trace.id,
+            name="recommendation_quality",
+            value=recommendation_eval.score,
+            comment=recommendation_eval.reasoning,
+            data_type="NUMERIC",
+        )
+
+        print(
+            f"{trace.name}: fundamental={fundamental_eval.score:.2f}, recommendation={recommendation_eval.score:.2f}"
+        )
+    langfuse.flush()
+
+
+if __name__ == "__main__":
+    run_llm_as_judge_evaluations()
