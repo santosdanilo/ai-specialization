@@ -18,7 +18,7 @@ load_dotenv(WORKSPACE_ROOT / ".env")
 
 langfuse = Langfuse()
 
-client = OpenAI(base_url=os.getenv("GROQ_API_URL"))
+client = OpenAI(base_url=os.getenv("LLM_BASE_URL", "https://openrouter.ai/api/v1"))
 
 
 class PromptResponseEvaluation(BaseModel):

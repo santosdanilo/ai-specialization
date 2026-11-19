@@ -29,7 +29,8 @@ class AgentService:
     def __init__(self, search_service: SearchService):
         self.search_service = search_service
         client = AsyncGroq(
-            api_key=settings.groq_api_key,
+            api_key=settings.llm_api_key,
+            base_url=settings.llm_base_url,
         )
         self.client = instructor.from_groq(client=client, mode=instructor.Mode.JSON)
         self.ticker_extractor = TickerExtractor()
@@ -49,7 +50,7 @@ class AgentService:
 
     async def _generate_completion(self, prompt: str, response_model=None):
         return await self.client.chat.completions.create(
-            model=settings.groq_model,
+            model=settings.llm_model,
             messages=[{"role": "user", "content": prompt}],
             temperature=0,
             response_model=response_model,

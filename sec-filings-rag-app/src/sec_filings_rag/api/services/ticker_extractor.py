@@ -12,7 +12,8 @@ from sec_filings_rag.api.models.ticker_extractor import TickerResult
 class TickerExtractor:
     def __init__(self):
         client = Groq(
-            api_key=settings.groq_api_key,
+            api_key=settings.llm_api_key,
+            base_url=settings.llm_base_url,
         )
         self.client = instructor.from_groq(client=client, mode=instructor.Mode.JSON)
         self.mappings = COMPANY_TICKER_MAPPINGS
@@ -28,7 +29,7 @@ class TickerExtractor:
     def _extract_with_llm(self, query: str) -> str | None:
         prompt = TICKER_EXTRACTION_PROMPT.format(query=query)
         result = self.client.chat.completions.create(
-            model=settings.groq_model,
+            model=settings.llm_model,
             messages=[{"role": "user", "content": prompt}],
             temperature=0,
             response_model=TickerResult,

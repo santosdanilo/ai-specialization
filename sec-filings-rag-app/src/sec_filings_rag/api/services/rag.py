@@ -1,7 +1,7 @@
 from groq import Groq
 
-from sec_filings_rag.api.config.settings import settings
 from sec_filings_rag.api.config.prompts import RAG_PROMPT
+from sec_filings_rag.api.config.settings import settings
 from sec_filings_rag.api.models.rag import RAGResponse
 from sec_filings_rag.api.services.search import SearchService
 
@@ -10,7 +10,8 @@ class RAGService:
     def __init__(self, search_service: SearchService):
         self.search_service = search_service
         self.client = Groq(
-            api_key=settings.groq_api_key,
+            api_key=settings.llm_api_key,
+            base_url=settings.llm_base_url,
         )
 
     def generate_answer(self, query: str, limit: int = 3):
@@ -24,7 +25,7 @@ class RAGService:
         prompt = RAG_PROMPT.format(context=context, query=query)
 
         response = self.client.chat.completions.create(
-            model=settings.groq_model,
+            model=settings.llm_model,
             messages=[{"role": "user", "content": prompt}],
             temperature=0,
         )

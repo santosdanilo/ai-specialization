@@ -11,7 +11,7 @@ WORKSPACE_ROOT = APP_ROOT.parents[2]
 
 load_dotenv(WORKSPACE_ROOT / ".env")
 
-client = OpenAI(base_url=os.getenv("GROQ_API_URL"))
+client = OpenAI(base_url=os.getenv("LLM_BASE_URL", "https://openrouter.ai/api/v1"))
 
 
 def load_test_case(filename: str) -> dict:
