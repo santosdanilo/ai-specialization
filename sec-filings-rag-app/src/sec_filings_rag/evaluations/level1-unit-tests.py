@@ -11,7 +11,10 @@ WORKSPACE_ROOT = APP_ROOT.parents[2]
 
 load_dotenv(WORKSPACE_ROOT / ".env")
 
-client = OpenAI(base_url=os.getenv("LLM_BASE_URL", "https://openrouter.ai/api/v1"))
+client = OpenAI(
+    api_key=os.getenv("LLM_API_KEY"),
+    base_url=os.getenv("LLM_BASE_URL", "https://openrouter.ai/api/v1"),
+)
 
 
 def load_test_case(filename: str) -> dict:
@@ -45,7 +48,7 @@ User: "What's the weather today?" → NONE
 User message: {query}
 Response:"""
 
-MODEL_NAME = "openai/gpt-oss-120b"
+MODEL_NAME = "google/gemma-4-31b-it:free"
 
 
 class TickerResult(BaseModel):
@@ -63,14 +66,14 @@ def extract_ticker(query: str) -> str | None:
 
     prompt = TICKER_EXTRACTION_PROMPT.format(query=query)
 
-    response = client.responses.parse(
+    response = client.chat.completions.parse(
         model=MODEL_NAME,
-        text_format=TickerResult,
-        input=[{"role": "user", "content": prompt}],
+        messages=[{"role": "user", "content": prompt}],
         temperature=0,
+        response_format=TickerResult,
     )
 
-    ticker = response.output_parsed.ticker
+    ticker = response.choices[0].message.parsed.ticker
 
     return ticker if ticker != "NONE" else None
 

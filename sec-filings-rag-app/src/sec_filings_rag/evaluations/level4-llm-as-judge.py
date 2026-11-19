@@ -11,14 +11,17 @@ from pydantic import BaseModel, Field
 
 APP_ROOT = Path(__file__).resolve().parent
 WORKSPACE_ROOT = APP_ROOT.parents[2]
-MAIN_MODEL_NAME = "openai/gpt-oss-120b"
-JUDGE_MODEL_NAME = "meta-llama/llama-4-scout-17b-16e-instruct"
+MAIN_MODEL_NAME = "google/gemma-4-31b-it:free"
+JUDGE_MODEL_NAME = "baidu/ernie-5.5-flash-preview:free"
 
 load_dotenv(WORKSPACE_ROOT / ".env")
 
 langfuse = Langfuse()
 
-client = OpenAI(base_url=os.getenv("LLM_BASE_URL", "https://openrouter.ai/api/v1"))
+client = OpenAI(
+    api_key=os.getenv("LLM_API_KEY"),
+    base_url=os.getenv("LLM_BASE_URL", "https://openrouter.ai/api/v1"),
+)
 
 
 class PromptResponseEvaluation(BaseModel):
@@ -69,14 +72,14 @@ def evaluate_fundamental_analysis(trace_data: dict) -> PromptResponseEvaluation:
         recommendation=fundamental_analysis.get("recommendation", {}),
     )
 
-    response = client.responses.parse(
+    response = client.chat.completions.parse(
         model=MAIN_MODEL_NAME,
-        text_format=PromptResponseEvaluation,
-        input={"role": "user", "content": prompt},
+        messages=[{"role": "user", "content": prompt}],
         temperature=0,
+        response_format=PromptResponseEvaluation,
     )
 
-    return response.output_parsed
+    return response.choices[0].message.parsed
 
 
 RECOMMENDATION_EVAL_PROMPT = """You are an expert financial analyst evaluating investment recommendations.
@@ -112,18 +115,18 @@ def evaluate_recommendation_quality(trace_data: dict) -> PromptResponseEvaluatio
     key_opportunities = ", ".join(final_recommendation.get("key_opportunities", []))
 
     prompt = RECOMMENDATION_EVAL_PROMPT.format(
-        action,
-        confidence,
-        rationale,
-        key_risks,
-        key_opportunities,
+        action=action,
+        confidence=confidence,
+        rationale=rationale,
+        key_risks=key_risks,
+        key_opportunities=key_opportunities,
     )
 
-    response = client.responses.parse(
+    response = client.chat.completions.parse(
         model=JUDGE_MODEL_NAME,
-        text_format=PromptResponseEvaluation,
-        input=[{"role": "user", "content": prompt}],
+        messages=[{"role": "user", "content": prompt}],
         temperature=0,
+        response_format=PromptResponseEvaluation,
     )
 
-    return response.output_parsed
+    return response.choices[0].message.parsed

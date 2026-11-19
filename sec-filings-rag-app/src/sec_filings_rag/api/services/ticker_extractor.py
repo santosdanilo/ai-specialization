@@ -1,5 +1,4 @@
 import instructor
-from groq import Groq
 
 from sec_filings_rag.api.config.company_mappings import (
     COMPANY_TICKER_MAPPINGS,
@@ -7,14 +6,12 @@ from sec_filings_rag.api.config.company_mappings import (
 )
 from sec_filings_rag.api.config.settings import settings
 from sec_filings_rag.api.models.ticker_extractor import TickerResult
+from sec_filings_rag.api.services.groq_compat import create_groq_client
 
 
 class TickerExtractor:
     def __init__(self):
-        client = Groq(
-            api_key=settings.llm_api_key,
-            base_url=settings.llm_base_url,
-        )
+        client = create_groq_client()
         self.client = instructor.from_groq(client=client, mode=instructor.Mode.JSON)
         self.mappings = COMPANY_TICKER_MAPPINGS
 

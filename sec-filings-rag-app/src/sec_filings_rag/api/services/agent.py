@@ -2,7 +2,6 @@ import asyncio
 from typing import Any
 
 import instructor
-from groq import AsyncGroq
 
 from sec_filings_rag.api.config.prompts import (
     AGGREGATION_PROMPT,
@@ -21,6 +20,7 @@ from sec_filings_rag.api.models.agent import (
     MomentumAnalysis,
     SentimentAnalysis,
 )
+from sec_filings_rag.api.services.groq_compat import create_groq_client
 from sec_filings_rag.api.services.search import SearchService
 from sec_filings_rag.api.services.ticker_extractor import TickerExtractor
 
@@ -28,10 +28,7 @@ from sec_filings_rag.api.services.ticker_extractor import TickerExtractor
 class AgentService:
     def __init__(self, search_service: SearchService):
         self.search_service = search_service
-        client = AsyncGroq(
-            api_key=settings.llm_api_key,
-            base_url=settings.llm_base_url,
-        )
+        client = create_groq_client(async_client=True)
         self.client = instructor.from_groq(client=client, mode=instructor.Mode.JSON)
         self.ticker_extractor = TickerExtractor()
 
