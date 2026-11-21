@@ -6,7 +6,6 @@ from sec_filings_rag.ingestion.utils.semantic_chunker import load_semantic_chunk
 from sec_filings_rag.ingestion.utils.ticker_validator import parse_ticker
 
 FORM_TYPES = ["10-K", "10-Q"]
-MAX_TOKENS = 300
 
 
 def collect_chunk_items(edgar, chunker, ticker: str, form_types=FORM_TYPES):
@@ -50,7 +49,7 @@ def main() -> None:
     settings = get_settings()
     store = create_vector_store(settings)
     edgar = load_edgar_client(settings.edgar_client_email)
-    chunker = load_semantic_chunker(max_tokens=MAX_TOKENS)
+    chunker = load_semantic_chunker(settings)
     embedding_service = load_embedding_service(settings)
 
     store.reset()

@@ -21,6 +21,10 @@ class Settings(BaseSettings):
     dense_model_name: str = "sentence-transformers/all-MiniLM-L6-v2"
     sparse_model_name: str = "Qdrant/bm25"
     colbert_model_name: str = "colbert-ir/colbertv2.0"
+    chunk_max_tokens: int = 300
+    model_max_seq_length: int = 512
+    dense_vector_size: int = 384
+    colbert_vector_size: int = 128
     llm_api_key: str = ""
     llm_base_url: str = "https://openrouter.ai/api/v1"
     llm_model: str = MODEL_NAME

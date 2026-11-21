@@ -37,9 +37,14 @@ class FakeQdrantClient:
         self.indexed.append(kwargs)
 
 
-def make_store(points=None):
+def make_store(points=None, dense_vector_size=384, colbert_vector_size=128):
     client = FakeQdrantClient(points=points)
-    store = QdrantVectorStore(client=client, collection_name="test-collection")
+    store = QdrantVectorStore(
+        client=client,
+        collection_name="test-collection",
+        dense_vector_size=dense_vector_size,
+        colbert_vector_size=colbert_vector_size,
+    )
     return store, client
 
 
@@ -125,6 +130,15 @@ class TestReset:
             "sparse": models.SparseVectorParams()
         }
 
+    def test_uses_configured_vector_sizes(self):
+        store, client = make_store(dense_vector_size=768, colbert_vector_size=64)
+
+        store.reset()
+
+        vectors_config = client.created[0]["vectors_config"]
+        assert vectors_config["dense"].size == 768
+        assert vectors_config["colbert"].size == 64
+
 
 class TestUpsert:
     def test_converts_records_to_points(self):
@@ -182,6 +196,8 @@ class TestFactory:
         assert isinstance(store, QdrantVectorStore)
         assert isinstance(store, VectorStore)
         assert store.collection_name == settings.collection_name
+        assert store.dense_vector_size == settings.dense_vector_size
+        assert store.colbert_vector_size == settings.colbert_vector_size
 
     def test_unknown_provider_raises(self):
         settings = Settings(

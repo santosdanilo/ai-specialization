@@ -23,9 +23,9 @@ class SemanticChunker:
         encoder: Encoder,
         tokenizer: Tokenizer,
         clusterer_factory: Any,
+        max_tokens: int,
         min_cluster_size: int = 3,
         orphan_cluster_size: int = 2,
-        max_tokens: int = 300,
     ):
         self.model = encoder
         self.tokenizer = tokenizer
@@ -97,20 +97,21 @@ class SemanticChunker:
         return final_chunks
 
 
-def load_semantic_chunker(
-    model_name: str = "sentence-transformers/all-MiniLM-L6-v2",
-    max_tokens: int = 300,
-) -> SemanticChunker:
-    """Build a SemanticChunker with real (heavy) models loaded."""
+def load_semantic_chunker(settings) -> SemanticChunker:
+    """Build a SemanticChunker with real (heavy) models loaded.
+
+    Reads the model name, chunk token budget and max sequence length from
+    ``settings`` so they stay colocated with the embedder config.
+    """
     import hdbscan
     from sentence_transformers import SentenceTransformer
     from transformers import AutoTokenizer
 
-    model = SentenceTransformer(model_name)
-    model.max_seq_length = 512
+    model = SentenceTransformer(settings.dense_model_name)
+    model.max_seq_length = settings.model_max_seq_length
     return SemanticChunker(
         encoder=model,
-        tokenizer=AutoTokenizer.from_pretrained(model_name),
+        tokenizer=AutoTokenizer.from_pretrained(settings.dense_model_name),
         clusterer_factory=hdbscan.HDBSCAN,
-        max_tokens=max_tokens,
+        max_tokens=settings.chunk_max_tokens,
     )

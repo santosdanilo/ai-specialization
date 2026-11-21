@@ -7,7 +7,7 @@ class SimpleChunker:
     The tokenizer is injected so chunking can be tested without transformers.
     """
 
-    def __init__(self, tokenizer: Tokenizer, max_tokens: int = 300):
+    def __init__(self, tokenizer: Tokenizer, max_tokens: int):
         self.max_tokens = max_tokens
         self.tokenizer = tokenizer
 
@@ -35,13 +35,15 @@ class SimpleChunker:
         return chunks
 
 
-def load_simple_chunker(
-    dense_model_name: str = "sentence-transformers/all-MiniLM-L6-v2",
-    max_tokens: int = 300,
-) -> SimpleChunker:
+def load_simple_chunker(settings) -> SimpleChunker:
+    """Build a SimpleChunker with the real tokenizer loaded.
+
+    Reads the model name and chunk token budget from ``settings`` so they
+    stay colocated with the embedder config.
+    """
     from transformers import AutoTokenizer
 
     return SimpleChunker(
-        tokenizer=AutoTokenizer.from_pretrained(dense_model_name),
-        max_tokens=max_tokens,
+        tokenizer=AutoTokenizer.from_pretrained(settings.dense_model_name),
+        max_tokens=settings.chunk_max_tokens,
     )

@@ -9,9 +9,17 @@ from sec_filings_rag.vector_store.base import ScoredHit, VectorRecord
 class QdrantVectorStore:
     """Qdrant adapter: owns all Qdrant-specific fusion/schema/payload details."""
 
-    def __init__(self, client: QdrantClient, collection_name: str):
+    def __init__(
+        self,
+        client: QdrantClient,
+        collection_name: str,
+        dense_vector_size: int,
+        colbert_vector_size: int,
+    ):
         self.client = client
         self.collection_name = collection_name
+        self.dense_vector_size = dense_vector_size
+        self.colbert_vector_size = colbert_vector_size
 
     @staticmethod
     def _build_filter(filter: dict[str, Any] | None = None) -> dict | None:
@@ -69,11 +77,11 @@ class QdrantVectorStore:
             collection_name=self.collection_name,
             vectors_config={
                 "dense": models.VectorParams(
-                    size=384,
+                    size=self.dense_vector_size,
                     distance=models.Distance.COSINE,
                 ),
                 "colbert": models.VectorParams(
-                    size=128,
+                    size=self.colbert_vector_size,
                     distance=models.Distance.COSINE,
                     multivector_config=models.MultiVectorConfig(
                         comparator=models.MultiVectorComparator.MAX_SIM,

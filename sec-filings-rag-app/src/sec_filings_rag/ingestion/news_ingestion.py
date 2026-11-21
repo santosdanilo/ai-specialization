@@ -5,8 +5,6 @@ from sec_filings_rag.ingestion.utils.records import build_records
 from sec_filings_rag.ingestion.utils.simple_chunker import load_simple_chunker
 from sec_filings_rag.ingestion.utils.ticker_validator import parse_ticker
 
-MAX_TOKENS = 300
-
 
 def collect_chunk_items(news_client, chunker, ticker: str, max_stories: int = 10):
     chunk_items = []
@@ -48,7 +46,7 @@ def main() -> None:
     settings = get_settings()
     store = create_vector_store(settings)
     news_client = load_news_client()
-    chunker = load_simple_chunker(settings.dense_model_name, max_tokens=MAX_TOKENS)
+    chunker = load_simple_chunker(settings)
     embedding_service = load_embedding_service(settings)
 
     count = ingest_news(

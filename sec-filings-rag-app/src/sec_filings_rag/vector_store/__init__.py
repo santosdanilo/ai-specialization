@@ -27,6 +27,8 @@ def create_vector_store(settings: "Settings") -> VectorStore:
                 api_key=settings.qdrant_api_key,
             ),
             collection_name=settings.collection_name,
+            dense_vector_size=settings.dense_vector_size,
+            colbert_vector_size=settings.colbert_vector_size,
         )
     raise ValueError(
         f"Unknown vector store provider: {provider!r} "
