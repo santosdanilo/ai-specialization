@@ -1,5 +1,4 @@
-from typing import Dict
-from edgar import set_identity, Company
+from edgar import Company, set_identity
 
 
 class EdgarClient:
@@ -9,7 +8,7 @@ class EdgarClient:
     def __init__(self, email: str):
         set_identity(email)
 
-    def fetch_filing_data(self, ticker: str, form_type: str) -> Dict[str, any]:
+    def fetch_filing_data(self, ticker: str, form_type: str) -> dict[str, any]:
         company = Company(ticker)
         filing = company.get_filings(form=form_type).latest()
 
@@ -32,7 +31,7 @@ class EdgarClient:
 
         return {"metadata": metadata, "items": items}
 
-    def get_combined_text(self, data: Dict) -> str:
+    def get_combined_text(self, data: dict) -> str:
         texts = []
         for item_name, item_content in data["items"].items():
             texts.append(f"## {item_name}\n\n{item_content}")

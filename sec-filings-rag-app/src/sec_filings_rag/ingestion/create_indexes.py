@@ -1,35 +1,26 @@
-import os
-from pathlib import Path
-
-from dotenv import load_dotenv
-from qdrant_client import QdrantClient, models
-
-APP_ROOT = Path(__file__).resolve().parent
-WORKSPACE_ROOT = APP_ROOT.parents[3]
-COLLECTION_NAME = "financial"
-
-fields_to_index = [
-    "metadata.ticker",
-    "metadata.form_type",
-    "metadata.source",
+FIELDS_TO_INDEX = [
+    "ticker",
+    "form_type",
+    "source",
 ]
 
 
+def create_filter_indexes(store, fields: list[str] = FIELDS_TO_INDEX) -> list[str]:
+    indexed = []
+    for field in fields:
+        store.ensure_filter_index(field)
+        print(f"Index created for field {field}")
+        indexed.append(field)
+    return indexed
+
+
 def main() -> None:
-    load_dotenv(WORKSPACE_ROOT / ".env")
+    from sec_filings_rag.api.config.settings import get_settings
+    from sec_filings_rag.vector_store import create_vector_store
 
-    qdrant = QdrantClient(
-        url=os.getenv("QDRANT_API_URL"),
-        api_key=os.getenv("QDRANT_API_KEY"),
-    )
-
-    for field_name in fields_to_index:
-        qdrant.create_payload_index(
-            collection_name=COLLECTION_NAME,
-            field_name=field_name,
-            field_schema=models.PayloadSchemaType.KEYWORD,
-        )
-        print(f"Qdrant: Index created for field {field_name}")
+    settings = get_settings()
+    store = create_vector_store(settings)
+    create_filter_indexes(store)
 
 
 if __name__ == "__main__":

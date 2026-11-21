@@ -1,16 +1,22 @@
-from typing import Dict
-from edgar import set_identity, Company
+from collections.abc import Callable
+from typing import Any
 
 
 class EdgarClient:
-    # Esses itens contem as informações mais relevantes para análise financeira
+    """Fetches SEC filing items for a ticker.
+
+    ``company_factory`` is required and injected so the parsing and
+    item-combining logic can be tested without network access. Use
+    ``load_edgar_client()`` to build the real ``edgar``-backed instance.
+    """
+
     FORM_ITEMS = {"10-K": ["1", "1A", "7", "8", "9A"], "10-Q": ["1", "2", "3", "4"]}
 
-    def __init__(self, email: str):
-        set_identity(email)
+    def __init__(self, company_factory: Callable[[str], Any]):
+        self._company_factory = company_factory
 
-    def fetch_filing_data(self, ticker: str, form_type: str) -> Dict[str, any]:
-        company = Company(ticker)
+    def fetch_filing_data(self, ticker: str, form_type: str) -> dict[str, any]:
+        company = self._company_factory(ticker)
         filing = company.get_filings(form=form_type).latest()
 
         metadata = {
@@ -32,9 +38,18 @@ class EdgarClient:
 
         return {"metadata": metadata, "items": items}
 
-    def get_combined_text(self, data: Dict) -> str:
+    def get_combined_text(self, data: dict) -> str:
         texts = []
         for item_name, item_content in data["items"].items():
             texts.append(f"## {item_name}\n\n{item_content}")
 
         return "\n\n".join(texts)
+
+
+def load_edgar_client(email: str) -> EdgarClient:
+    """Build the real EdgarClient backed by the ``edgar`` package."""
+    from edgar import Company, set_identity
+
+    if email:
+        set_identity(email)
+    return EdgarClient(company_factory=Company)

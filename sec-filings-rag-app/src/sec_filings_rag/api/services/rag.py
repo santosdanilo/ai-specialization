@@ -1,14 +1,19 @@
 from sec_filings_rag.api.config.prompts import RAG_PROMPT
-from sec_filings_rag.api.config.settings import settings
+from sec_filings_rag.api.config.settings import Settings
+from sec_filings_rag.api.interfaces import ChatClient, SearchServiceProtocol
 from sec_filings_rag.api.models.rag import RAGResponse
-from sec_filings_rag.api.services.groq_compat import create_groq_client
-from sec_filings_rag.api.services.search import SearchService
 
 
 class RAGService:
-    def __init__(self, search_service: SearchService):
+    def __init__(
+        self,
+        search_service: SearchServiceProtocol,
+        llm_client: ChatClient,
+        settings: Settings,
+    ):
         self.search_service = search_service
-        self.client = create_groq_client()
+        self.client = llm_client
+        self.settings = settings
 
     def generate_answer(self, query: str, limit: int = 3):
         search_results = self.search_service.query(
@@ -21,7 +26,7 @@ class RAGService:
         prompt = RAG_PROMPT.format(context=context, query=query)
 
         response = self.client.chat.completions.create(
-            model=settings.llm_model,
+            model=self.settings.llm_model,
             messages=[{"role": "user", "content": prompt}],
             temperature=0,
         )

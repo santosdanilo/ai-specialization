@@ -1,16 +1,19 @@
-from fastapi import APIRouter, HTTPException
+from typing import Annotated
 
-from sec_filings_rag.api.deps import get_search_service
+from fastapi import APIRouter, Depends, HTTPException
+
+from sec_filings_rag.api.deps import get_agent_service
 from sec_filings_rag.api.models.agent import AgentRequest, AgentResponse
 from sec_filings_rag.api.services.agent import AgentService
 
 router = APIRouter()
 
-agent_service = AgentService(search_service=get_search_service())
-
 
 @router.post("/agent", response_model=AgentResponse)
-async def agent(request: AgentRequest):
+async def agent(
+    request: AgentRequest,
+    agent_service: Annotated[AgentService, Depends(get_agent_service)],
+):
     try:
         return await agent_service.analyze(request.query, request.limit)
     except ValueError as e:

@@ -1,19 +1,19 @@
-import instructor
-
-from sec_filings_rag.api.config.company_mappings import (
-    COMPANY_TICKER_MAPPINGS,
-    TICKER_EXTRACTION_PROMPT,
-)
-from sec_filings_rag.api.config.settings import settings
+from sec_filings_rag.api.config.company_mappings import TICKER_EXTRACTION_PROMPT
+from sec_filings_rag.api.config.settings import Settings
+from sec_filings_rag.api.interfaces import ChatClient
 from sec_filings_rag.api.models.ticker_extractor import TickerResult
-from sec_filings_rag.api.services.groq_compat import create_groq_client
 
 
 class TickerExtractor:
-    def __init__(self):
-        client = create_groq_client()
-        self.client = instructor.from_groq(client=client, mode=instructor.Mode.JSON)
-        self.mappings = COMPANY_TICKER_MAPPINGS
+    def __init__(
+        self,
+        client: ChatClient,
+        settings: Settings,
+        mappings: dict[str, str],
+    ):
+        self.client = client
+        self.settings = settings
+        self.mappings = mappings
 
     def extract_ticker(self, query: str) -> str | None:
         query_lower = query.lower()
@@ -26,7 +26,7 @@ class TickerExtractor:
     def _extract_with_llm(self, query: str) -> str | None:
         prompt = TICKER_EXTRACTION_PROMPT.format(query=query)
         result = self.client.chat.completions.create(
-            model=settings.llm_model,
+            model=self.settings.llm_model,
             messages=[{"role": "user", "content": prompt}],
             temperature=0,
             response_model=TickerResult,

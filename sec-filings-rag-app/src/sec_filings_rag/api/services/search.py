@@ -1,35 +1,18 @@
-from qdrant_client import QdrantClient, models
-
-from sec_filings_rag.api.models.search import SearchResponse, SearchResult
-from sec_filings_rag.api.services.embeddings import EmbeddingService
 from typing import Any
+
+from sec_filings_rag.api.interfaces import QueryEmbeddingService
+from sec_filings_rag.api.models.search import SearchResponse, SearchResult
+from sec_filings_rag.vector_store import VectorStore
 
 
 class SearchService:
     def __init__(
         self,
-        qdrant_api_url: str,
-        qdrant_api_key: str,
-        collection_name: str,
+        store: VectorStore,
+        embedding_service: QueryEmbeddingService,
     ):
-        self.qdrant = QdrantClient(
-            url=qdrant_api_url,
-            api_key=qdrant_api_key,
-        )
-        self.collection_name = collection_name
-        self.embedding_service = EmbeddingService()
-
-    def _build_qdrant_filter(self, filter: dict[str, Any] | None = None) -> dict | None:
-        if not filter:
-            return None
-
-        must_conditions = []
-        for key, value in filter.items():
-            must_conditions.append(
-                {"key": f"metadata.{key}", "match": {"value": value}}
-            )
-
-        return {"must": must_conditions}
+        self.store = store
+        self.embedding_service = embedding_service
 
     def query(self, query: str, limit: int = 3, filter: dict[str, Any] | None = None):
         query_dense_embedding, query_sparse_embedding, query_colbert_embedding = (
@@ -38,49 +21,26 @@ class SearchService:
             )
         )
 
-        query_filter = self._build_qdrant_filter(filter)
-
-        results = self.qdrant.query_points(
-            collection_name=self.collection_name,
-            prefetch=[
-                {
-                    "prefetch": [
-                        {
-                            "query": query_dense_embedding,
-                            "using": "dense",
-                            "limit": 10,
-                        },
-                        {
-                            "query": query_sparse_embedding,
-                            "using": "sparse",
-                            "limit": 10,
-                        },
-                    ],
-                    "query": models.FusionQuery(
-                        fusion=models.Fusion.RRF,
-                    ),
-                    "limit": 15,
-                },
-                {},
-            ],
-            query=query_colbert_embedding,
-            using="colbert",
+        hits = self.store.search(
+            dense=query_dense_embedding,
+            sparse=query_sparse_embedding,
+            colbert=query_colbert_embedding,
             limit=limit,
-            query_filter=query_filter,
-            with_payload=True,
+            filter=filter,
         )
-        if not results.points:
+
+        if not hits:
             return SearchResponse(results=[])
 
-        max_score = max(result.score for result in results.points)
+        max_score = max(hit.score for hit in hits)
 
         search_results = [
             SearchResult(
-                score=result.score / max_score,
-                text=result.payload["text"],
-                metadata=result.payload["metadata"],
+                score=hit.score / max_score,
+                text=hit.text,
+                metadata=hit.metadata,
             )
-            for result in results.points
+            for hit in hits
         ]
         return SearchResponse(
             results=search_results,

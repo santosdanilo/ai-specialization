@@ -1,8 +1,9 @@
+from collections.abc import Callable
 from datetime import datetime, timezone
 from types import SimpleNamespace
+from typing import Any
 
-import trafilatura
-import yfinance as yf
+from sec_filings_rag.ingestion.interfaces import NewsSource  # noqa: F401 (re-export for typing)
 
 
 def Ticker(ticker: str, count: int = 10) -> SimpleNamespace:
@@ -12,6 +13,8 @@ def Ticker(ticker: str, count: int = 10) -> SimpleNamespace:
     ``yf.Search`` still provides news, but uses a different article schema.
     Adapt its results here so existing ingestion code can keep consuming them.
     """
+    import yfinance as yf
+
     articles = yf.Search(ticker, news_count=count).news
     news = []
 
@@ -45,8 +48,26 @@ def Ticker(ticker: str, count: int = 10) -> SimpleNamespace:
 
 
 class NewsClient:
+    """Fetches and extracts news articles for a ticker.
+
+    ``news_fetcher``, ``url_fetcher`` and ``text_extractor`` are required and
+    injected so parsing/filtering can be tested offline. Use
+    ``load_news_client()`` to build the real yfinance/trafilatura-backed
+    instance.
+    """
+
+    def __init__(
+        self,
+        news_fetcher: Callable[..., SimpleNamespace],
+        url_fetcher: Callable[[str], Any],
+        text_extractor: Callable[[Any], Any],
+    ):
+        self._news_fetcher = news_fetcher
+        self._url_fetcher = url_fetcher
+        self._text_extractor = text_extractor
+
     def fetch_news(self, ticker: str, max_stories: int = 10) -> list[dict[str, any]]:
-        data = Ticker(ticker, count=max_stories)
+        data = self._news_fetcher(ticker, count=max_stories)
         news = data.news
 
         news_data = []
@@ -64,8 +85,8 @@ class NewsClient:
             if not url or "finance.yahoo.com" not in url:
                 continue
 
-            downloaded = trafilatura.fetch_url(url)
-            text_content = trafilatura.extract(downloaded)
+            downloaded = self._url_fetcher(url)
+            text_content = self._text_extractor(downloaded)
             if text_content:
                 metadata = {
                     "ticker": ticker,
@@ -82,3 +103,14 @@ class NewsClient:
                 )
 
         return news_data
+
+
+def load_news_client() -> NewsClient:
+    """Build the real NewsClient backed by yfinance and trafilatura."""
+    import trafilatura
+
+    return NewsClient(
+        news_fetcher=Ticker,
+        url_fetcher=trafilatura.fetch_url,
+        text_extractor=trafilatura.extract,
+    )

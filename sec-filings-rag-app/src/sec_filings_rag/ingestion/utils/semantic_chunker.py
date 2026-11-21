@@ -1,36 +1,49 @@
-import warnings
-from collections import defaultdict
+from typing import Any, Protocol
 
-import hdbscan
-from sentence_transformers import SentenceTransformer
-from transformers import AutoTokenizer
 
-warnings.simplefilter(action="ignore", category=FutureWarning)
+class Tokenizer(Protocol):
+    def encode(self, text: str, add_special_tokens: bool = True) -> list[int]: ...
+
+
+class Encoder(Protocol):
+    max_seq_length: int
+
+    def encode(self, texts: list[str], show_progress_bar: bool = False) -> Any: ...
 
 
 class SemanticChunker:
+    """Groups semantically similar paragraphs into token-bounded chunks.
+
+    The encoder and tokenizer are injected so clustering logic can be tested
+    without loading sentence-transformer models.
+    """
+
     def __init__(
         self,
-        model_name: str = "sentence-transformers/all-MiniLM-L6-v2",
+        encoder: Encoder,
+        tokenizer: Tokenizer,
+        clusterer_factory: Any,
         min_cluster_size: int = 3,
         orphan_cluster_size: int = 2,
         max_tokens: int = 300,
     ):
-        self.model = SentenceTransformer(model_name)
-        self.model.max_seq_length = 512
+        self.model = encoder
+        self.tokenizer = tokenizer
         self.min_cluster_size = min_cluster_size
         self.orphan_cluster_size = orphan_cluster_size
         self.max_tokens = max_tokens
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self._clusterer_factory = clusterer_factory
 
     def _cluster_and_process(self, texts, min_size):
         if len(texts) <= 1:
             return [], texts
 
         embeddings = self.model.encode(texts, show_progress_bar=False)
-        labels = hdbscan.HDBSCAN(
+        labels = self._clusterer_factory(
             min_cluster_size=min_size, metric="euclidean"
         ).fit_predict(embeddings)
+
+        from collections import defaultdict
 
         clusters = defaultdict(list)
         orphans = []
@@ -82,3 +95,22 @@ class SemanticChunker:
             final_chunks.extend(orphans)
 
         return final_chunks
+
+
+def load_semantic_chunker(
+    model_name: str = "sentence-transformers/all-MiniLM-L6-v2",
+    max_tokens: int = 300,
+) -> SemanticChunker:
+    """Build a SemanticChunker with real (heavy) models loaded."""
+    import hdbscan
+    from sentence_transformers import SentenceTransformer
+    from transformers import AutoTokenizer
+
+    model = SentenceTransformer(model_name)
+    model.max_seq_length = 512
+    return SemanticChunker(
+        encoder=model,
+        tokenizer=AutoTokenizer.from_pretrained(model_name),
+        clusterer_factory=hdbscan.HDBSCAN,
+        max_tokens=max_tokens,
+    )

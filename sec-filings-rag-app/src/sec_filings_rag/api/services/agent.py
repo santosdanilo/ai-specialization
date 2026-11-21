@@ -1,8 +1,6 @@
 import asyncio
 from typing import Any
 
-import instructor
-
 from sec_filings_rag.api.config.prompts import (
     AGGREGATION_PROMPT,
     FUNDAMENTAL_PROMPT,
@@ -12,7 +10,12 @@ from sec_filings_rag.api.config.prompts import (
     SENTIMENT_PROMPT,
     SENTIMENT_QUERY_TEMPLATE,
 )
-from sec_filings_rag.api.config.settings import settings
+from sec_filings_rag.api.config.settings import Settings
+from sec_filings_rag.api.interfaces import (
+    AsyncChatClient,
+    SearchServiceProtocol,
+    TickerExtractorProtocol,
+)
 from sec_filings_rag.api.models.agent import (
     AgentResponse,
     FinalRecommendation,
@@ -20,17 +23,20 @@ from sec_filings_rag.api.models.agent import (
     MomentumAnalysis,
     SentimentAnalysis,
 )
-from sec_filings_rag.api.services.groq_compat import create_groq_client
-from sec_filings_rag.api.services.search import SearchService
-from sec_filings_rag.api.services.ticker_extractor import TickerExtractor
 
 
 class AgentService:
-    def __init__(self, search_service: SearchService):
+    def __init__(
+        self,
+        search_service: SearchServiceProtocol,
+        llm_client: AsyncChatClient,
+        ticker_extractor: TickerExtractorProtocol,
+        settings: Settings,
+    ):
         self.search_service = search_service
-        client = create_groq_client(async_client=True)
-        self.client = instructor.from_groq(client=client, mode=instructor.Mode.JSON)
-        self.ticker_extractor = TickerExtractor()
+        self.client = llm_client
+        self.ticker_extractor = ticker_extractor
+        self.settings = settings
 
     def _run_queries(
         self, queries: list[str], limit: int, filter: dict[str, Any] | None = None
@@ -47,7 +53,7 @@ class AgentService:
 
     async def _generate_completion(self, prompt: str, response_model=None):
         return await self.client.chat.completions.create(
-            model=settings.llm_model,
+            model=self.settings.llm_model,
             messages=[{"role": "user", "content": prompt}],
             temperature=0,
             response_model=response_model,

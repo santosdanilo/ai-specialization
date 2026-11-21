@@ -1,26 +1,42 @@
 import argparse
-import os
-import uuid
-from pathlib import Path
 
-from dotenv import load_dotenv
-from fastembed import LateInteractionTextEmbedding, SparseTextEmbedding, TextEmbedding
-from qdrant_client import QdrantClient, models
-
-from sec_filings_rag.ingestion.utils.news_client import NewsClient
-from sec_filings_rag.ingestion.utils.simple_chunker import SimpleChunker
+from sec_filings_rag.ingestion.utils.news_client import load_news_client
+from sec_filings_rag.ingestion.utils.records import build_records
+from sec_filings_rag.ingestion.utils.simple_chunker import load_simple_chunker
 from sec_filings_rag.ingestion.utils.ticker_validator import parse_ticker
 
-APP_ROOT = Path(__file__).resolve().parent
-WORKSPACE_ROOT = APP_ROOT.parents[3]
-DENSE_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
-COLLECTION_NAME = "financial"
-SPARSE_MODEL_NAME = "Qdrant/bm25"
-COLBERT_MODEL_NAME = "colbert-ir/colbertv2.0"
 MAX_TOKENS = 300
 
 
+def collect_chunk_items(news_client, chunker, ticker: str, max_stories: int = 10):
+    chunk_items = []
+    for article in news_client.fetch_news(ticker, max_stories=max_stories):
+        for chunk in chunker.create_chunks(article["text"]):
+            chunk_items.append(
+                {"text": chunk, "metadata": article["metadata"]}
+            )
+    return chunk_items
+
+
+def ingest_news(
+    store,
+    news_client,
+    chunker,
+    embedding_service,
+    ticker: str,
+    max_stories: int = 10,
+) -> int:
+    """Fetch news, chunk, embed and upsert. Returns number of records."""
+    chunk_items = collect_chunk_items(news_client, chunker, ticker, max_stories)
+    records = build_records(chunk_items, embedding_service)
+    return store.upsert(records)
+
+
 def main() -> None:
+    from sec_filings_rag.api.config.settings import get_settings
+    from sec_filings_rag.api.services.embeddings import load_embedding_service
+    from sec_filings_rag.vector_store import create_vector_store
+
     parser = argparse.ArgumentParser(description="Ingest stock news into Qdrant")
     parser.add_argument(
         "ticker",
@@ -29,55 +45,20 @@ def main() -> None:
     )
     ticker = parser.parse_args().ticker
 
-    load_dotenv(WORKSPACE_ROOT / ".env")
+    settings = get_settings()
+    store = create_vector_store(settings)
+    news_client = load_news_client()
+    chunker = load_simple_chunker(settings.dense_model_name, max_tokens=MAX_TOKENS)
+    embedding_service = load_embedding_service(settings)
 
-    qdrant = QdrantClient(
-        url=os.getenv("QDRANT_API_URL"),
-        api_key=os.getenv("QDRANT_API_KEY"),
+    count = ingest_news(
+        store=store,
+        news_client=news_client,
+        chunker=chunker,
+        embedding_service=embedding_service,
+        ticker=ticker,
     )
-
-    news_client = NewsClient()
-
-    news_data = news_client.fetch_news(ticker, max_stories=10)
-
-    chunker = SimpleChunker(max_tokens=MAX_TOKENS)
-
-    all_chunks = []
-    for article in news_data:
-        chunks = chunker.create_chunks(article["text"])
-        for chunk in chunks:
-            all_chunks.append(
-                {
-                    "text": chunk,
-                    "metadata": article["metadata"],
-                }
-            )
-
-    dense_model = TextEmbedding(DENSE_MODEL_NAME)
-    sparse_model = SparseTextEmbedding(SPARSE_MODEL_NAME)
-    colbert_model = LateInteractionTextEmbedding(COLBERT_MODEL_NAME)
-
-    points = []
-    for chunk_data in all_chunks:
-        chunk = chunk_data["text"]
-        metadata = chunk_data["metadata"]
-
-        dense_embedding = next(iter(dense_model.passage_embed([chunk]))).tolist()
-        sparse_embedding = next(iter(sparse_model.passage_embed([chunk]))).as_object()
-        colbert_embedding = next(iter(colbert_model.passage_embed([chunk]))).tolist()
-
-        point = models.PointStruct(
-            id=str(uuid.uuid4()),
-            vector={
-                "dense": dense_embedding,
-                "sparse": sparse_embedding,
-                "colbert": colbert_embedding,
-            },
-            payload={"text": chunk, "metadata": metadata},
-        )
-        points.append(point)
-
-    qdrant.upload_points(collection_name=COLLECTION_NAME, points=points, batch_size=5)
+    print(f"Ingested {count} news chunks for {ticker}")
 
 
 if __name__ == "__main__":
